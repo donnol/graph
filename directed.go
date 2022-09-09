@@ -30,13 +30,15 @@ func (d *directed[K, T]) Traits() *Traits {
 }
 
 func (d *directed[K, T]) AddVertex(value T) error {
-	hash := d.hash(value)
+	// 对输入值取hash，再以hash->value键值对存入map
+	hash := d.hash(value) // 同样的value经过hash后得到同样的k，所以vertices里不会存在相同元素
 	d.vertices[hash] = value
 
 	return nil
 }
 
 func (d *directed[K, T]) Vertex(hash K) (T, error) {
+	// 根据hash键取值
 	vertex, ok := d.vertices[hash]
 	if !ok {
 		return vertex, fmt.Errorf("vertex with hash %v doesn't exist", hash)
@@ -46,6 +48,7 @@ func (d *directed[K, T]) Vertex(hash K) (T, error) {
 }
 
 func (d *directed[K, T]) AddEdge(sourceHash, targetHash K, options ...func(*EdgeProperties)) error {
+	// 先确保两个点存在
 	source, ok := d.vertices[sourceHash]
 	if !ok {
 		return fmt.Errorf("could not find source vertex with hash %v", sourceHash)
@@ -56,12 +59,14 @@ func (d *directed[K, T]) AddEdge(sourceHash, targetHash K, options ...func(*Edge
 		return fmt.Errorf("could not find target vertex with hash %v", targetHash)
 	}
 
+	// 确保边不存在
 	if _, err := d.Edge(sourceHash, targetHash); !errors.Is(err, ErrEdgeNotFound) {
 		return fmt.Errorf("an edge between vertices %v and %v already exists", sourceHash, targetHash)
 	}
 
 	// If the user opted in to permitting cycles, run a cycle check.
 	if d.traits.PermitCycles {
+		// 判断新加的边是否会在已有图里构建出环
 		createsCycle, err := CreatesCycle[K, T](d, sourceHash, targetHash)
 		if err != nil {
 			return fmt.Errorf("failed to check for cycles: %w", err)
@@ -208,6 +213,7 @@ func (d *directed[K, T]) edgesAreEqual(a, b Edge[T]) bool {
 }
 
 func (d *directed[K, T]) addEdge(sourceHash, targetHash K, edge Edge[T]) {
+	// deges和outEdges不是就一样了？
 	if _, ok := d.edges[sourceHash]; !ok {
 		d.edges[sourceHash] = make(map[K]Edge[T])
 	}
@@ -220,6 +226,7 @@ func (d *directed[K, T]) addEdge(sourceHash, targetHash K, edge Edge[T]) {
 
 	d.outEdges[sourceHash][targetHash] = edge
 
+	// 方向反过来
 	if _, ok := d.inEdges[targetHash]; !ok {
 		d.inEdges[targetHash] = make(map[K]Edge[T])
 	}

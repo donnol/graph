@@ -40,11 +40,14 @@ func CreatesCycle[K comparable, T any](g Graph[K, T], source, target K) (bool, e
 	}
 
 	stack := make([]K, 0)
-	visited := make(map[K]bool)
+	visited := make(map[K]bool) // 记录端点是否已遍历
 
+	// 入栈
 	stack = append(stack, source)
 
+	// 不断的遍历，找source为终点的起点集，入栈、出栈，配置visited跳过已遍历的点
 	for len(stack) > 0 {
+		// 出栈
 		currentHash := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
 
@@ -56,7 +59,9 @@ func CreatesCycle[K comparable, T any](g Graph[K, T], source, target K) (bool, e
 			}
 			visited[currentHash] = true
 
+			// 找出以source为终点的起点集
 			for adjacency := range predecessorMap[currentHash] {
+				// 入栈
 				stack = append(stack, adjacency)
 			}
 		}
@@ -84,7 +89,9 @@ func ShortestPath[K comparable, T any](g Graph[K, T], source, target K) ([]K, er
 	weights[source] = 0
 	visited[target] = true
 
+	// 优先队列
 	queue := newPriorityQueue[K]()
+
 	adjacencyMap, err := g.AdjacencyMap()
 	if err != nil {
 		return nil, fmt.Errorf("could not get adjacency map: %w", err)
