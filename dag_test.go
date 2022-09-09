@@ -180,3 +180,41 @@ func slicesAreEqualWithFunc[T any](a, b []T, equals func(a, b T) bool) bool {
 
 	return true
 }
+
+func BenchmarkTopologicalSort(b *testing.B) {
+	tests := map[string]struct {
+		vertices      []int
+		edges         []Edge[int]
+		expectedOrder []int
+	}{
+		"graph with 5 vertices": {
+			vertices: []int{1, 2, 3, 4, 5},
+			edges: []Edge[int]{
+				{Source: 1, Target: 2},
+				{Source: 1, Target: 3},
+				{Source: 2, Target: 3},
+				{Source: 2, Target: 4},
+				{Source: 2, Target: 5},
+				{Source: 3, Target: 4},
+				{Source: 4, Target: 5},
+			},
+			expectedOrder: []int{1, 2, 3, 4, 5},
+		},
+	}
+
+	var graph Graph[int, int]
+	for _, test := range tests {
+		graph = New(IntHash, Directed(), Acyclic())
+		for _, vertex := range test.vertices {
+			_ = graph.AddVertex(vertex)
+		}
+
+		for _, edge := range test.edges {
+			graph.AddEdge(edge.Source, edge.Target, EdgeWeight(edge.Properties.Weight))
+		}
+	}
+
+	for i := 0; i < b.N; i++ {
+		TopologicalSort(graph)
+	}
+}
