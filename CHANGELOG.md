@@ -5,11 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),  and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2022-09-19
+
+### Added
+* Added the `PermitCycles` option to explicitly prevent the creation of cycles.
+
+### Changed
+* Changed the `Acyclic` option to not implicitly impose cycle checks for operations like `AddEdge`. To prevent the creation of cycles, use `PermitCycles`.
+* Changed `TopologicalSort` to only work for graphs created with `PermitCycles`. This is temporary.
+* Changed `TransitiveReduction` to only work for graphs created with `PermitCycles`. This is temporary.
+
+## [0.11.0] - 2022-09-15
+
+### Added
+* Added the `Order` method for retrieving the number of vertices in the graph.
+* Added the `Size` method for retrieving the number of edges in the graph.
+
+### Changed
+* Changed the `graph` logo.
+* Changed an internal operation of `ShortestPath` from O(n) to O(log(n)) by implementing the priority queue as a binary heap. Note that the actual complexity might still be defined by `ShortestPath` itself.
+
+### Fixed
+* Fixed `draw.DOT` to work correctly with vertices that contain special characters and whitespaces.
+
 ## [0.10.0] - 2022-09-09
 
 ### Added
 * Added the `PredecessorMap` method for obtaining a map with all predecessors of each vertex.
 * Added the `RemoveEdge` method for removing the edge between two vertices.
+* Added the `Clone` method for retrieving a deep copy of the graph.
 * Added the `TopologicalSort` function for obtaining the topological order of the vertices in the graph.
 * Added the `TransitiveReduction` function for transforming the graph into its transitive reduction.
 

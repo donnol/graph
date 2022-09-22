@@ -11,7 +11,7 @@ A library for creating generic graph data structures and modifying, analyzing, a
 * Algorithms for non-recursive graph traversal, such as DFS or BFS.
 * Edges with optional metadata, such as weights or custom attributes.
 * Visualization of graphs using the DOT language and Graphviz.
-* Extensive unit tests with over 90% code coverage.
+* Extensive tests with ~90% coverage, and zero dependencies.
 
 > Status: Because `graph` is in version 0, the public API shouldn't be considered stable.
 
@@ -170,7 +170,7 @@ fmt.Println(path)
 ![topological sort](img/topological-sort.svg)
 
 ```go
-g := graph.New(graph.IntHash, graph.Directed(), graph.Acyclic())
+g := graph.New(graph.IntHash, graph.Directed(), graph.PermitCycles())
 
 // Add vertices and edges ...
 
@@ -188,19 +188,19 @@ fmt.Println(order)
 ![transitive reduction](img/transitive-reduction.svg)
 
 ```go
-g := graph.New(graph.StringHash, graph.Directed(), graph.Acyclic())
+g := graph.New(graph.StringHash, graph.Directed(), graph.PermitCycles())
 
 // Add vertices and edges ...
 
 _ := graph.TransitiveReduction(g)
 ```
 
-## Cycle checks for acyclic graphs
+## Prevent the creation of cycles
 
 ![cycle checks](img/cycles.svg)
 
 ```go
-g := graph.New(graph.IntHash, graph.Acyclic())
+g := graph.New(graph.IntHash, graph.PermitCycles())
 
 g.AddVertex(1)
 g.AddVertex(2)

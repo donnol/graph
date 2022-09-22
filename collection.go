@@ -1,94 +1,107 @@
 package graph
 
 import (
+	"container/heap"
 	"errors"
-	"sort"
 )
 
 // priorityQueue is a priority queue implementation for minimum priorities, meaning that smaller
-// values will be prioritized. It maintains a descendingly ordered list of priority items.
+// values will be prioritized. It maintains a list of priority items in descending order.
 //
-// This is still a naive implementation, which is to be replaced with a binary heap implementation.
+// This implementation is built on top of heap.Interface with some adjustments to comply with the
+// usage of generics.
 type priorityQueue[T comparable] struct {
-	items []priorityItem[T]
+	items *minHeap[T]
+	cache map[T]*priorityItem[T]
 }
 
 // priorityItem is an item in the priority queue, consisting of a priority and an actual value.
 type priorityItem[T comparable] struct {
 	value    T
 	priority float64
+	// index is used internally by heap.Interface to re-organize items in the queue.
+	index int
 }
 
 func newPriorityQueue[T comparable]() *priorityQueue[T] {
 	return &priorityQueue[T]{
-		items: make([]priorityItem[T], 0),
+		items: &minHeap[T]{},
+		cache: map[T]*priorityItem[T]{},
 	}
 }
 
-// Push pushes a new item with the given priority into the queue. Because Push keeps track of the
-// descendant order of items and priorities, it has O(n) insertion time.
-func (p *priorityQueue[T]) Push(item T, priority float64) {
-	index := p.Len() - 1
-
-	for i := p.Len(); i > 0; i-- {
-		currentItem := p.items[i-1]
-		if currentItem.priority > priority {
-			index = i
-			break
-		}
-	}
-
-	p.insertItemAt(item, priority, index)
-}
-
-// Pop returns the item with the smallest priority from the queue and removes that item. Returns an
-// error if the priority queue is empty, which can be tested using Len first.s
-func (p *priorityQueue[T]) Pop() (T, error) {
-	var priorityItem priorityItem[T]
-
-	if p.Len() == 0 {
-		return priorityItem.value, errors.New("priority queue is empty")
-	}
-
-	priorityItem = p.items[p.Len()-1]
-	p.items = p.items[:p.Len()-1]
-
-	return priorityItem.value, nil
-}
-
-// DecreasePriority decreases the priority of a given item to the given priority. The item must be
-// pushed into the queue first. If the item doesn't exist, nothing happens.
-//
-// With the current implementation, DecreasePriority causes the items in the queue to be re-sorted.
-func (p *priorityQueue[T]) DecreasePriority(item T, priority float64) {
-	for i, currentItem := range p.items {
-		if currentItem.value == item {
-			p.items[i].priority = priority
-		}
-	}
-
-	sort.Slice(p.items, func(i, j int) bool {
-		return p.items[i].priority > p.items[j].priority
-	})
-}
-
-// Len returns the current length of the priority queue, i.e. the number of items in the queue.
 func (p *priorityQueue[T]) Len() int {
-	return len(p.items)
+	return p.items.Len()
 }
 
-func (p *priorityQueue[T]) insertItemAt(item T, priority float64, index int) {
-	priorityItem := priorityItem[T]{
-		value:    item,
-		priority: priority,
-	}
-
-	if p.Len() == 0 || p.Len() == index {
-		p.items = append(p.items, priorityItem)
+// Push pushes a new item with the given priority into the queue.
+func (p *priorityQueue[T]) Push(item T, priority float64) {
+	if _, ok := p.cache[item]; ok {
 		return
 	}
 
-	p.items = append(p.items[:index+1], p.items[index:]...)
+	newItem := &priorityItem[T]{
+		value:    item,
+		priority: priority,
+		index:    0,
+	}
 
-	p.items[index] = priorityItem
+	heap.Push(p.items, newItem)
+	p.cache[item] = newItem
+}
+
+// Pop returns the item with the smallest priority from the queue and removes that item.
+func (p *priorityQueue[T]) Pop() (T, error) {
+	if len(*p.items) == 0 {
+		var empty T
+		return empty, errors.New("priority queue is empty")
+	}
+
+	item := heap.Pop(p.items).(*priorityItem[T])
+	delete(p.cache, item.value)
+
+	return item.value, nil
+}
+
+// UpdatePriority updates the priority of a given item to the given priority. The item must be
+// pushed into the queue first. If the item doesn't exist, nothing happens.
+func (p *priorityQueue[T]) UpdatePriority(item T, priority float64) {
+	targetItem, ok := p.cache[item]
+	if !ok {
+		return
+	}
+
+	targetItem.priority = priority
+	heap.Fix(p.items, targetItem.index)
+}
+
+// minHeap is a binary min heap that implements heap.Interface.
+type minHeap[T comparable] []*priorityItem[T]
+
+func (m *minHeap[T]) Len() int {
+	return len(*m)
+}
+
+func (m *minHeap[T]) Less(i, j int) bool {
+	return (*m)[i].priority < (*m)[j].priority
+}
+
+func (m *minHeap[T]) Swap(i, j int) {
+	(*m)[i], (*m)[j] = (*m)[j], (*m)[i]
+	(*m)[i].index = i
+	(*m)[j].index = j
+}
+
+func (m *minHeap[T]) Push(item interface{}) {
+	i := item.(*priorityItem[T])
+	i.index = len(*m)
+	*m = append(*m, i)
+}
+
+func (m *minHeap[T]) Pop() interface{} {
+	old := *m
+	item := old[len(old)-1]
+	*m = old[:len(old)-1]
+
+	return item
 }
