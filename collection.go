@@ -30,6 +30,18 @@ func newPriorityQueue[T comparable]() *priorityQueue[T] {
 	}
 }
 
+var (
+	_ = newPriorityQueueWithLength[int]
+)
+
+func newPriorityQueueWithLength[T comparable](l int) *priorityQueue[T] {
+	items := make(minHeap[T], 0, l)
+	return &priorityQueue[T]{
+		items: &items,
+		cache: make(map[T]*priorityItem[T], l),
+	}
+}
+
 func (p *priorityQueue[T]) Len() int {
 	return p.items.Len()
 }

@@ -89,9 +89,6 @@ func ShortestPath[K comparable, T any](g Graph[K, T], source, target K) ([]K, er
 	weights[source] = 0
 	visited[target] = true
 
-	// 优先队列
-	queue := newPriorityQueue[K]()
-
 	adjacencyMap, err := g.AdjacencyMap()
 	if err != nil {
 		return nil, fmt.Errorf("could not get adjacency map: %w", err)
@@ -101,6 +98,9 @@ func ShortestPath[K comparable, T any](g Graph[K, T], source, target K) ([]K, er
 	if err != nil {
 		return nil, fmt.Errorf("failed to get predecessor map: %w", err)
 	}
+
+	// 优先队列
+	queue := newPriorityQueueWithLength[K](len(adjacencyMap))
 
 	for hash := range adjacencyMap {
 		if hash != source {
