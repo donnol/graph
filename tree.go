@@ -7,7 +7,7 @@ type Trees[K comparable, T any] []struct {
 type Node[K comparable, T any] struct {
 	key    K
 	value  T
-	Childs []Node[K, T]
+	childs []Node[K, T]
 }
 
 func ToTrees[K comparable, T any](g Graph[K, T]) Trees[K, T] {
@@ -20,3 +20,14 @@ func toTrees[K comparable, T any](g Graph[K, T], source K) Trees[K, T] {
 
 	return nil
 }
+
+var (
+	_ = Node[int, int]{
+		key:   1,
+		value: 1,
+		childs: []Node[int, int]{
+			{key: 1, value: 1},
+		},
+	}
+	_ = toTrees[int, int]
+)
