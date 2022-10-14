@@ -33,6 +33,7 @@ import "fmt"
 //
 // DFS is non-recursive and maintains a stack instead.
 func DFS[K comparable, T any](g Graph[K, T], start K, visit func(K) bool) error {
+	// 直接用outEdges map不行吗？
 	adjacencyMap, err := g.AdjacencyMap()
 	if err != nil {
 		return fmt.Errorf("could not get adjacency map: %w", err)
@@ -42,14 +43,16 @@ func DFS[K comparable, T any](g Graph[K, T], start K, visit func(K) bool) error 
 		return fmt.Errorf("could not find start vertex with hash %v", start)
 	}
 
+	// 栈-后进先出，优先遍历更深的地方
 	stack := make([]K, 0)
 	visited := make(map[K]bool)
 
+	// 入栈
 	stack = append(stack, start)
 
 	for len(stack) > 0 {
+		// 出栈
 		currentHash := stack[len(stack)-1]
-
 		stack = stack[:len(stack)-1]
 
 		if _, ok := visited[currentHash]; !ok {
@@ -59,6 +62,9 @@ func DFS[K comparable, T any](g Graph[K, T], start K, visit func(K) bool) error 
 			}
 			visited[currentHash] = true
 
+			// 把当前节点指向的所有节点入栈
+			// 往更深的地方去
+			// 同一层的入栈顺序是不确定的
 			for adjacency := range adjacencyMap[currentHash] {
 				stack = append(stack, adjacency)
 			}
