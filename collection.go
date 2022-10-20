@@ -12,7 +12,7 @@ import (
 // usage of generics.
 type priorityQueue[T comparable] struct {
 	items *minHeap[T]
-	cache map[T]*priorityItem[T]
+	cache map[T]*priorityItem[T] // 快速查找item
 }
 
 // priorityItem is an item in the priority queue, consisting of a priority and an actual value.
@@ -31,10 +31,10 @@ func newPriorityQueue[T comparable]() *priorityQueue[T] {
 }
 
 var (
-	_ = newPriorityQueueWithLength[int]
+	_ = newPriorityQueueWithCap[int]
 )
 
-func newPriorityQueueWithLength[T comparable](l int) *priorityQueue[T] {
+func newPriorityQueueWithCap[T comparable](l int) *priorityQueue[T] {
 	items := make(minHeap[T], 0, l)
 	return &priorityQueue[T]{
 		items: &items,

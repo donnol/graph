@@ -77,6 +77,7 @@ func CreatesCycle[K comparable, T any](g Graph[K, T], source, target K) (bool, e
 // The returned path includes the source and target vertices. If the target cannot be reached
 // from the source vertex, ShortestPath returns an error. If there are multiple shortest paths,
 // an arbitrary one will be returned.
+// 从一个点到另一个点的最短路径
 func ShortestPath[K comparable, T any](g Graph[K, T], source, target K) ([]K, error) {
 	weights := make(map[K]float64)
 	visited := make(map[K]bool)
@@ -100,7 +101,7 @@ func ShortestPath[K comparable, T any](g Graph[K, T], source, target K) ([]K, er
 	}
 
 	// 优先队列
-	queue := newPriorityQueueWithLength[K](len(adjacencyMap))
+	queue := newPriorityQueueWithCap[K](len(adjacencyMap))
 
 	for hash := range adjacencyMap {
 		if hash != source {
@@ -123,7 +124,9 @@ func ShortestPath[K comparable, T any](g Graph[K, T], source, target K) ([]K, er
 			}
 		}
 
+		// 遍历节点指向的其它节点
 		for adjacency, edge := range adjacencyMap[vertex] {
+			// 在节点的权重基础上加上边的权重
 			weight := weights[vertex] + float64(edge.Properties.Weight)
 
 			if weight < weights[adjacency] && !hasInfiniteWeight {
